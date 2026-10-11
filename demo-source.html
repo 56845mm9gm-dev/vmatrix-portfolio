@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>VMatrix 功能演示</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0b0f1a;--bg2:#131a2b;--bg3:#0e1422;--border:#232c45;--dim:#8b94ad;--acc:#6c5ce7;--teal:#00d2c6;--ok:#3ddc97;--warn:#ffb46b}
+html,body{height:900px;overflow:hidden}
+body{background:radial-gradient(1100px 620px at 50% 6%,#161d31,#05080f 72%);
+  font-family:"Microsoft YaHei","PingFang SC","Segoe UI",system-ui,sans-serif;color:#e6e9f2;-webkit-font-smoothing:antialiased}
+.stage{height:900px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px}
+
+/* ---------- 窗口 ---------- */
+.win{width:1440px;height:694px;background:var(--bg);border:1px solid var(--border);border-radius:12px;overflow:hidden;
+  display:flex;flex-direction:column;box-shadow:0 26px 70px rgba(0,0,0,.6)}
+.bar{height:36px;background:#111726;border-bottom:1px solid #1d2538;display:flex;align-items:center;padding:0 14px;gap:8px;flex:none}
+.bar i{width:11px;height:11px;border-radius:50%;display:block}
+.bar .t{color:var(--dim);font-size:12.5px;margin-left:8px}
+.bar .r{margin-left:auto;color:#5c6580;font-size:11.5px}
+.bd{flex:1;display:flex;min-height:0}
+.side{width:194px;background:var(--bg3);border-right:1px solid #1d2538;padding:11px 9px;display:flex;flex-direction:column;gap:3px;flex:none}
+.nv{padding:9px 11px;border-radius:8px;color:var(--dim);font-size:13.5px;display:flex;gap:9px;align-items:center;transition:.18s}
+.nv.on{background:rgba(108,92,231,.2);color:#c9c2ff}
+.main{flex:1;padding:15px 19px;overflow:hidden}
+.view{display:none;height:100%}
+.view.on{display:block}
+
+/* ---------- 通用 ---------- */
+.vt{font-size:19px;font-weight:600;margin-bottom:3px}
+.vs{color:var(--dim);font-size:12.5px;margin-bottom:12px}
+.pt{font-size:13px;color:#a8b0c6;margin:12px 0 7px;font-weight:600}
+.pt2{font-size:12.5px;color:#a8b0c6;margin-bottom:7px;font-weight:600}
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:11px 13px;margin-bottom:9px}
+.row{display:flex;gap:8px;align-items:center}
+.row input{flex:1;width:auto}
+input,textarea{background:#0d1322;border:1px solid #26314c;border-radius:8px;color:#e6e9f2;font-family:inherit;
+  font-size:13px;padding:8px 11px;outline:none;display:block;width:100%;min-width:0}
+input:focus,textarea:focus{border-color:var(--acc)}
+textarea{resize:none;height:46px;line-height:1.5}
+button{background:var(--acc);color:#fff;border:0;border-radius:8px;padding:8px 15px;font-size:13px;
+  font-family:inherit;cursor:default;flex:none}
+button.ghost{background:#1c2438;color:#c3cade;border:1px solid #2b3550}
+.two{display:flex;gap:9px}
+.two>.panel{flex:1;margin-bottom:9px}
+
+/* 卡片 */
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.card .k{color:var(--dim);font-size:11.5px}
+.card .v{font-size:24px;font-weight:700;margin-top:3px;color:#fff}
+.cards6{display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin:11px 0}
+.cards6 .card{padding:10px 12px}
+.cards6 .v{font-size:19px}
+
+/* 平台矩阵 */
+.grid8{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.pf{display:flex;align-items:center;gap:9px;background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:8px 10px}
+.pf .lg{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:700;color:#fff;flex:none}
+.pf .n{font-size:12.5px}
+.pf .s{color:var(--dim);font-size:11px}
+.pf .st{margin-left:auto;font-size:10.5px;padding:2px 7px;border-radius:20px;flex:none}
+.st.y{background:rgba(61,220,151,.16);color:#7cebb3}
+.st.n{background:rgba(255,180,107,.14);color:#ffc48a}
+.st.p{background:rgba(61,220,151,.14);color:var(--ok)}
+.st.w{background:rgba(255,180,107,.14);color:var(--warn)}
+
+.tip{background:rgba(108,92,231,.1);border:1px solid rgba(108,92,231,.3);border-radius:9px;
+  padding:9px 12px;color:#b8aff5;font-size:12px;margin-top:11px}
+
+/* 素材 / 账号行 */
+.acc{display:flex;align-items:center;gap:9px;background:#0d1322;border:1px solid #26314c;border-radius:8px;padding:7px 10px}
+.acc .lg{width:28px;height:28px;border-radius:7px;background:var(--acc);display:flex;align-items:center;justify-content:center;flex:none}
+.acc .n{font-size:12.5px}
+.acc .s{color:var(--dim);font-size:11px}
+.acc .tag{margin-left:auto;font-size:11px;padding:2px 8px;border-radius:20px;background:rgba(0,210,198,.16);color:#7ee8dd;flex:none}
+#fileItem{opacity:.45}
+#fileItem.on{opacity:1;border-color:var(--acc);background:rgba(108,92,231,.12)}
+.ck{width:17px;height:17px;border-radius:5px;border:1.5px solid #39456a;background:#0a0f1c;flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;transition:.15s}
+.ck.on{background:var(--acc);border-color:var(--acc)}
+.ck.on:after{content:"✓"}
+.accs{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.accs .acc{cursor:default}
+
+/* 进度 */
+.prog{display:flex;align-items:center;gap:9px;margin-top:10px}
+.prog .pbar{flex:1;height:7px;background:#0a0f1c;border-radius:20px;overflow:hidden;border:1px solid #26314c}
+.prog .pbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--teal));border-radius:20px}
+.prog span{color:var(--teal);font-size:12px;width:38px;text-align:right;flex:none}
+
+/* 标签 */
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;min-height:26px}
+.chip{background:rgba(108,92,231,.2);border:1px solid rgba(108,92,231,.4);color:#c9c2ff;
+  border-radius:20px;padding:3px 10px;font-size:11.5px;animation:pop .28s ease}
+@keyframes pop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+.cnt{color:var(--dim);font-size:11px;margin-top:6px}
+
+/* 开关 */
+.opts{background:rgba(255,180,107,.06);border:1px solid rgba(255,180,107,.25);border-radius:10px;padding:9px 12px;margin-bottom:9px}
+.opts label{display:block;font-size:12px;color:#d7dceb;margin:3px 0}
+.opts .mini{color:var(--dim);font-size:11px}
+.go{width:100%;padding:11px;font-size:14.5px;background:linear-gradient(90deg,var(--acc),#8b7bff);border-radius:10px}
+
+/* 状态列表 */
+.stlist{display:flex;flex-direction:column;gap:7px}
+.srow{display:flex;align-items:center;gap:9px;background:var(--bg2);border:1px solid var(--border);
+  border-radius:9px;padding:8px 11px;animation:slide .3s ease}
+@keyframes slide{from{transform:translateX(-14px);opacity:0}to{transform:none;opacity:1}}
+.srow .lg{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;color:#fff;flex:none}
+.srow .n{font-size:12.5px;flex:none;width:104px}
+.srow .d{flex:1;color:var(--dim);font-size:11.5px;line-height:1.6}
+.srow .d b{color:#7cebb3;font-weight:600}
+.srow .d i{color:var(--warn);font-style:normal}
+
+/* 表格 */
+table{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px}
+th{color:var(--dim);font-weight:500;text-align:left;padding:6px 9px;border-bottom:1px solid var(--border);font-size:11.5px}
+th:nth-child(n+2){text-align:right}
+td{padding:7px 9px;border-bottom:1px solid #1a2237}
+td:nth-child(n+2){text-align:right;font-weight:600}
+tr{animation:slide .28s ease}
+
+.kv{display:grid;grid-template-columns:64px 1fr;gap:5px 10px;font-size:12.5px;line-height:1.75}
+.kv b{color:var(--dim);font-weight:500}
+
+.hide{display:none!important}
+.hl{outline:2px solid var(--teal);outline-offset:2px;border-radius:10px;animation:glow .9s ease}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(0,210,198,.55)}50%{box-shadow:0 0 0 7px rgba(0,210,198,0)}}
+
+/* ---------- 字幕条 ---------- */
+.cap{width:1440px;background:rgba(12,17,29,.94);border:1px solid var(--border);border-radius:11px;
+  padding:13px 18px 11px;display:flex;flex-direction:column;gap:8px}
+.cap .top{display:flex;align-items:center;gap:11px}
+.cap .idx{color:var(--teal);font-size:12px;font-weight:700;letter-spacing:.5px;flex:none}
+.cap .tx{font-size:20px;font-weight:600;color:#fff;line-height:1.4}
+.cap .tx.fade{animation:fin .4s ease}
+@keyframes fin{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+.cap .pbar{height:3px;background:#1a2237;border-radius:20px;overflow:hidden}
+.cap .pbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--teal));transition:width .5s ease}
+
+/* ---------- 光标 ---------- */
+#cur{position:fixed;left:0;top:0;width:24px;height:24px;pointer-events:none;z-index:99;
+  transform:translate(-100px,-100px);transition:transform .55s cubic-bezier(.32,.85,.3,1);
+  filter:drop-shadow(0 3px 6px rgba(0,0,0,.55))}
+#cur.down{transform-origin:top left}
+#rip{position:fixed;left:0;top:0;width:16px;height:16px;border-radius:50%;border:2px solid #00d2c6;
+  pointer-events:none;z-index:98;opacity:0;margin:-8px 0 0 -8px}
+#rip.go{animation:rip .55s ease-out}
+@keyframes rip{0%{opacity:.95;transform:scale(.4)}100%{opacity:0;transform:scale(2.6)}}
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="win">
+    <div class="bar">
+      <i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i>
+      <span class="t">VMatrix · 短视频多平台运营中枢</span>
+      <span class="r">v1.3.0</span>
+    </div>
+    <div class="bd">
+      <aside class="side">
+        <div class="nv on" data-view="dash">🏠 工作台</div>
+        <div class="nv" data-view="dl">⬇️ 素材下载</div>
+        <div class="nv" data-view="pub">🚀 一键发布</div>
+        <div class="nv" data-view="asst">🧭 发布助手</div>
+        <div class="nv" data-view="data">📊 数据中心</div>
+        <div class="nv" data-view="acc">👥 账号管理</div>
+      </aside>
+      <main class="main">
+
+        <!-- 工作台 -->
+        <section class="view on" id="v-dash">
+          <h2 class="vt">工作台</h2>
+          <div class="vs">多平台账号矩阵总览 · 一次创作，全网分发</div>
+          <div class="cards">
+            <div class="card"><div class="k">素材总数</div><div class="v" data-c="12">0</div></div>
+            <div class="card"><div class="k">账号总数</div><div class="v" data-c="13">0</div></div>
+            <div class="card"><div class="k">已授权</div><div class="v" data-c="9">0</div></div>
+            <div class="card"><div class="k">今日发布</div><div class="v" data-c="3">0</div></div>
+          </div>
+          <div class="pt">账号矩阵</div>
+          <div class="grid8">
+            <div class="pf"><span class="lg" style="background:#000">抖</span><div><div class="n">抖音</div><div class="s">2 个账号</div></div><span class="st y">已授权</span></div>
+            <div class="pf"><span class="lg" style="background:#00a1d6">B</span><div><div class="n">哔哩哔哩</div><div class="s">1 个账号</div></div><span class="st y">已授权</span></div>
+            <div class="pf"><span class="lg" style="background:#ff2442">书</span><div><div class="n">小红书</div><div class="s">2 个账号</div></div><span class="st y">已授权</span></div>
+            <div class="pf"><span class="lg" style="background:#fe3666">快</span><div><div class="n">快手</div><div class="s">1 个账号</div></div><span class="st n">未授权</span></div>
+            <div class="pf"><span class="lg" style="background:#07c160">视</span><div><div class="n">视频号</div><div class="s">1 个账号</div></div><span class="st y">已授权</span></div>
+            <div class="pf"><span class="lg" style="background:#111">TK</span><div><div class="n">TikTok</div><div class="s">1 个账号</div></div><span class="st y">已授权</span></div>
+            <div class="pf"><span class="lg" style="background:#ff0000">▶</span><div><div class="n">YouTube</div><div class="s">1 个账号</div></div><span class="st n">未授权</span></div>
+            <div class="pf"><span class="lg" style="background:#e1306c">IG</span><div><div class="n">Instagram</div><div class="s">2 个账号</div></div><span class="st y">已授权</span></div>
+          </div>
+          <div class="tip">💡 运营提示：今日 3 条内容已发布，2 个账号尚未授权，建议先在「账号管理」完成登录。</div>
+        </section>
+
+        <!-- 素材下载 -->
+        <section class="view" id="v-dl">
+          <h2 class="vt">素材下载</h2>
+          <div class="vs">粘贴平台分享链接，一键解析下载（内外网双通道 · 自动重连）</div>
+          <div class="panel">
+            <div class="row">
+              <input id="dlInput" placeholder="粘贴抖音 / B站 / 小红书 / 快手 分享链接">
+              <button id="dlBtn">解析下载</button>
+            </div>
+            <div class="prog hide" id="dlProg"><div class="pbar"><i></i></div><span>0%</span></div>
+            <div class="acc hide" id="dlRes" style="margin-top:10px">
+              <span class="lg">🎞️</span>
+              <div><div class="n">城市漫步_实拍.mp4</div><div class="s">48.2 MB · 已入库素材库</div></div>
+              <span class="tag">已就绪</span>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="pt2">已下载素材</div>
+            <div class="acc" style="margin-bottom:7px"><span class="lg" style="background:#6c5ce7">🎬</span><div><div class="n">改造前后对比.mp4</div><div class="s">32.7 MB</div></div><span class="tag">可发布</span></div>
+            <div class="acc"><span class="lg" style="background:#6c5ce7">🎬</span><div><div class="n">街拍混剪.mp4</div><div class="s">61.4 MB</div></div><span class="tag">可发布</span></div>
+          </div>
+        </section>
+
+        <!-- 一键发布 -->
+        <section class="view" id="v-pub">
+          <h2 class="vt">一键发布</h2>
+          <div class="vs">选素材 → 填信息 → 选账号 → 自动上传并填表</div>
+          <div class="panel">
+            <div class="pt2">① 选择素材</div>
+            <div class="acc" id="fileItem"><span class="lg">🎞️</span>
+              <div><div class="n">城市漫步_实拍.mp4</div><div class="s">48.2 MB · 2026/10/11 12:04</div></div>
+              <span class="tag">点击选择</span></div>
+          </div>
+          <div class="two">
+            <div class="panel">
+              <div class="pt2">② 标题 / 简介</div>
+              <input id="pubTitle" placeholder="统一标题，各平台共用">
+              <textarea id="pubDesc" placeholder="简介 / 描述" style="margin-top:7px"></textarea>
+            </div>
+            <div class="panel">
+              <div class="pt2">③ 话题标签</div>
+              <div class="row">
+                <input id="tagInput" placeholder="回车添加，可一次粘贴多个">
+                <button class="ghost" id="hashBtn">＋#</button>
+                <button class="ghost">添加</button>
+              </div>
+              <div class="chips" id="chips"></div>
+              <div class="cnt" id="tagCnt"></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="pt2">④ 账号矩阵（勾选要发布的账号）</div>
+            <div class="accs">
+              <div class="acc" id="acc1"><span class="ck"></span><span class="lg" style="background:#000">抖</span><div><div class="n">抖音 · 主号</div><div class="s">已授权</div></div></div>
+              <div class="acc" id="acc2"><span class="ck"></span><span class="lg" style="background:#00a1d6">B</span><div><div class="n">B站 · 主号</div><div class="s">已授权</div></div></div>
+              <div class="acc" id="acc3"><span class="ck"></span><span class="lg" style="background:#ff2442">书</span><div><div class="n">小红书 · 主号</div><div class="s">已授权</div></div></div>
+              <div class="acc" id="acc4"><span class="ck"></span><span class="lg" style="background:#07c160">视</span><div><div class="n">视频号 · 主号</div><div class="s">已授权</div></div></div>
+              <div class="acc" id="acc5"><span class="ck"></span><span class="lg" style="background:#111">TK</span><div><div class="n">TikTok · 主号</div><div class="s">已授权</div></div></div>
+              <div class="acc" id="acc6"><span class="ck"></span><span class="lg" style="background:#fe3666">快</span><div><div class="n">快手 · 主号</div><div class="s" style="color:#ffc48a">未授权</div></div></div>
+            </div>
+          </div>
+          <div class="opts" id="autoBox">
+            <label>☑ 自动上传视频（免去手动选择文件）</label>
+            <label>☑ 自动填标题 / 简介 / 话题</label>
+            <label style="color:#ffc48a">☐ 自动点击发布按钮（默认关闭，由你最终确认）</label>
+          </div>
+          <button class="go" id="goBtn">🚀 一键发布（自动上传 + 自动填表）</button>
+        </section>
+
+        <!-- 发布助手 -->
+        <section class="view" id="v-asst">
+          <h2 class="vt">发布助手</h2>
+          <div class="vs">悬浮于平台创作中心窗口，实时回显每个账号的执行状态</div>
+          <div class="panel">
+            <div class="pt2">当前发布内容</div>
+            <div class="kv">
+              <b>素材</b><span>城市漫步_实拍.mp4</span>
+              <b>标题</b><span id="asstTitle">—</span>
+              <b>简介</b><span id="asstDesc">—</span>
+              <b>话题</b><span id="asstTags" style="color:#b8aff5">—</span>
+            </div>
+          </div>
+          <div class="pt">各账号执行状态</div>
+          <div class="stlist" id="asstList"></div>
+        </section>
+
+        <!-- 数据中心 -->
+        <section class="view" id="v-data">
+          <h2 class="vt">数据中心</h2>
+          <div class="vs">各平台真实数据一键拉取 · 自动分类汇总 · 支持导出</div>
+          <button id="dataBtn">📊 获取数据</button>
+          <div class="cards6">
+            <div class="card"><div class="k">播放</div><div class="v" data-c="128430">0</div></div>
+            <div class="card"><div class="k">点赞</div><div class="v" data-c="9271">0</div></div>
+            <div class="card"><div class="k">收藏</div><div class="v" data-c="2408">0</div></div>
+            <div class="card"><div class="k">评论</div><div class="v" data-c="1135">0</div></div>
+            <div class="card"><div class="k">分享</div><div class="v" data-c="786">0</div></div>
+            <div class="card"><div class="k">新增粉丝</div><div class="v" data-c="492">0</div></div>
+          </div>
+          <table>
+            <thead><tr><th>平台账号</th><th>播放</th><th>点赞</th><th>评论</th><th>分享</th><th>粉丝</th></tr></thead>
+            <tbody id="dtBody"></tbody>
+          </table>
+        </section>
+
+        <!-- 账号管理 -->
+        <section class="view" id="v-acc">
+          <h2 class="vt">账号管理</h2>
+          <div class="vs">多平台多账号独立会话隔离 · 支持导入 Cookie 绕过风控</div>
+          <div class="grid8">
+            <div class="pf"><span class="lg" style="background:#000">抖</span><div><div class="n">抖音 · 主号</div><div class="s">已登录</div></div><span class="st y">已授权</span></div>
+            <div class="pf"><span class="lg" style="background:#000">抖</span><div><div class="n">抖音 · 小号</div><div class="s">已登录</div></div><span class="st y">已授权</span></div>
+            <div class="pf"><span class="lg" style="background:#00a1d6">B</span><div><div class="n">B站 · 主号</div><div class="s">已登录</div></div><span class="st y">已授权</span></div>
+            <div class="pf"><span class="lg" style="background:#ff2442">书</span><div><div class="n">小红书 · 主号</div><div class="s">已登录</div></div><span class="st y">已授权</span></div>
+            <div class="pf"><span class="lg" style="background:#fe3666">快</span><div><div class="n">快手 · 主号</div><div class="s">未登录</div></div><span class="st n">未授权</span></div>
+            <div class="pf"><span class="lg" style="background:#ff0000">▶</span><div><div class="n">YouTube</div><div class="s">未登录</div></div><span class="st n">未授权</span></div>
+          </div>
+          <div class="tip">🔐 每个账号独立浏览器分区，Cookie 互不干扰；内置浏览器被风控时可用「导入 Cookie」接管登录态。</div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <div class="cap">
+    <div class="top"><span class="idx" id="capIdx">01 / 14</span><span class="tx" id="capTx"></span></div>
+    <div class="pbar"><i id="capBar"></i></div>
+  </div>
+</div>
+
+<div id="cur">
+  <svg width="24" height="24" viewBox="0 0 24 24">
+    <path d="M5 2 L5 20 L9.4 15.9 L12.5 22.6 L15.2 21.4 L12.1 14.9 L18 14.6 Z"
+      fill="#fff" stroke="#0b0f1a" stroke-width="1.1" stroke-linejoin="round"/>
+  </svg>
+</div>
+<div id="rip"></div>
+
+<script>
+/* ============ 工具 ============ */
+const $=s=>document.querySelector(s);
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const cur=$('#cur'),rip=$('#rip');
+
+function moveTo(x,y){cur.style.transform='translate('+x+'px,'+y+'px)';}
+function moveToEl(el){
+  const r=el.getBoundingClientRect();
+  moveTo(Math.round(r.left+r.width/2-3),Math.round(r.top+r.height/2-3));
+}
+async function goEl(sel){const el=$(sel);if(!el)return;moveToEl(el);await wait(620);}
+async function click(sel){
+  if(sel)await goEl(sel);
+  const m=/translate\(([-\d.]+)px,([-\d.]+)px\)/.exec(cur.style.transform)||[0,0,0];
+  rip.style.transform='translate('+m[1]+'px,'+m[2]+'px)';
+  rip.classList.remove('go');void rip.offsetWidth;rip.classList.add('go');
+  cur.style.filter='drop-shadow(0 1px 3px rgba(0,0,0,.6))';
+  await wait(140);
+  cur.style.filter='drop-shadow(0 3px 6px rgba(0,0,0,.55))';
+  await wait(260);
+}
+async function type(sel,text){
+  const el=$(sel);if(!el)return;
+  el.focus();
+  for(let i=0;i<text.length;i++){el.value+=text[i];await wait(40);}
+}
+function hl(sel){const e=$(sel);if(e)e.classList.add('hl');}
+function unhl(){document.querySelectorAll('.hl').forEach(e=>e.classList.remove('hl'));}
+function setNav(v){
+  document.querySelectorAll('.nv').forEach(n=>n.classList.toggle('on',n.dataset.view===v));
+  document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+v));
+}
+function setCap(t,i,n){
+  const tx=$('#capTx');tx.textContent=t;tx.classList.remove('fade');void tx.offsetWidth;tx.classList.add('fade');
+  $('#capIdx').textContent=String(i).padStart(2,'0')+' / '+n;
+  $('#capBar').style.width=(i/n*100)+'%';
+}
+function countUp(el,to,ms){
+  const st=performance.now();
+  return new Promise(res=>{
+    (function f(t){
+      const k=Math.min(1,(t-st)/ms),e=1-Math.pow(1-k,3);
+      el.textContent=Math.round(to*e).toLocaleString('en-US');
+      if(k<1)requestAnimationFrame(f);else res();
+    })(st);
+  });
+}
+function animateCards(root){
+  return Promise.all([...root.querySelectorAll('[data-c]')].map(el=>countUp(el,+el.dataset.c,900)));
+}
+
+/* ============ 场景动作 ============ */
+async function doDownload(){
+  const p=$('#dlProg');p.classList.remove('hide');
+  const bar=p.querySelector('i'),num=p.querySelector('span');
+  for(let v=0;v<=100;v+=2){bar.style.width=v+'%';num.textContent=v+'%';await wait(24);}
+  await wait(200);
+  $('#dlRes').classList.remove('hide');
+}
+async function renderTags(){
+  const raw=$('#tagInput').value||'';
+  const list=raw.replace(/[#＃]/g,' ').split(/[\s,，、;；]+/).map(s=>s.trim()).filter(Boolean);
+  const box=$('#chips');box.innerHTML='';
+  for(const t of list){
+    box.insertAdjacentHTML('beforeend','<span class="chip">#'+t+'</span>');
+    await wait(230);
+  }
+  $('#tagCnt').textContent=list.length+' / 24 个标签 · '+list.map(t=>'#'+t).join(' ');
+}
+const ASST=[
+  ['抖','#000','抖音 · 主号','<b>✅ 视频已自动注入</b> · <b>✅ 标题已填入</b> · <b>✅ 话题已填入</b>'],
+  ['B','#00a1d6','B站 · 主号','<b>✅ 视频已自动注入</b> · <b>✅ 标题已填入</b> · <i>⚠️ 简介未识别，请手动粘贴</i>'],
+  ['书','#ff2442','小红书 · 主号','<b>✅ 视频已自动注入</b> · <b>✅ 标题已填入</b> · <b>✅ 话题已填入</b>'],
+  ['视','#07c160','视频号 · 主号','<b>✅ 视频已自动注入</b> · <b>✅ 标题已填入</b> · <i>⚠️ 需滑块验证，请人工配合</i>'],
+  ['TK','#111','TikTok · 主号','<b>✅ 视频已自动注入</b> · <b>✅ 标题已填入</b> · <b>✅ 话题已填入</b>']
+];
+async function doPublish(){
+  $('#asstTitle').textContent=$('#pubTitle').value||'—';
+  $('#asstDesc').textContent=$('#pubDesc').value||'—';
+  $('#asstTags').textContent=$('#tagCnt').textContent.split(' · ')[1]||'—';
+  setNav('asst');
+  const list=$('#asstList');list.innerHTML='';
+  for(const a of ASST){
+    list.insertAdjacentHTML('beforeend',
+      '<div class="srow"><span class="lg" style="background:'+a[1]+'">'+a[0]+'</span>'+
+      '<span class="n">'+a[2]+'</span><span class="d">'+a[3]+'</span></div>');
+    await wait(430);
+  }
+}
+const ROWS=[
+  ['抖音 · 主号','86,420','6,318','742','531','286'],
+  ['B站 · 主号','21,037','1,842','226','118','94'],
+  ['小红书 · 主号','15,286','902','131','97','78'],
+  ['视频号 · 主号','5,687','209','36','40','34']
+];
+async function doFetch(){
+  await animateCards($('#v-data'));
+  const b=$('#dtBody');b.innerHTML='';
+  for(const r of ROWS){
+    b.insertAdjacentHTML('beforeend','<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td><td>'+r[4]+'</td><td>'+r[5]+'</td></tr>');
+    await wait(280);
+  }
+}
+
+/* ============ 时间线 ============ */
+const STEPS=[
+  {cap:'VMatrix —— 短视频多平台运营中枢：一个客户端，管住全网账号矩阵',nav:'dash',hold:3200},
+  {cap:'① 素材下载：粘贴任意平台的视频分享链接',nav:'dl',type:['#dlInput','https://v.douyin.com/iRabCdEf/'],hold:2200},
+  {cap:'点击「解析下载」，内外网双通道自动重连，下载进度实时可见',click:'#dlBtn',after:doDownload,hold:2400},
+  {cap:'② 一键发布：选择刚下载好的素材',nav:'pub',click:'#fileItem',after:async()=>{$('#fileItem').classList.add('on');$('#fileItem').querySelector('.tag').textContent='已选择';},hold:2200},
+  {cap:'填写统一标题，一次填写，所有平台共用',click:'#pubTitle',type:['#pubTitle','城中村改造后居然这么美？全程实拍！'],hold:2200},
+  {cap:'填写简介 / 描述，留空时自动用标题兜底',click:'#pubDesc',type:['#pubDesc','改造后的样子真的惊艳到我，记录给你们看'],hold:2200},
+  {cap:'③ 话题标签：Ctrl + Shift + 3 一键插入井号，支持一次粘贴多个、自动去重',click:'#tagInput',type:['#tagInput','城市摄影 街拍 #旅行'],after:renderTags,hold:2600},
+  {cap:'④ 勾选要分发的账号：多平台、多账号可同时勾选',clicks:['#acc1','#acc2','#acc3','#acc4'],hold:2800},
+  {cap:'三个自动化开关：自动上传、自动填表默认开启；自动点击发布默认关闭，最终由你确认',hl:'#autoBox',hold:3200},
+  {cap:'点击「一键发布」—— 自动打开各平台创作中心，注入视频并填好表单',click:'#goBtn',after:doPublish,hold:3000},
+  {cap:'发布助手：每个账号的上传与填表结果实时回显，没识别到的项会明确提示',hl:'#asstList',hold:3400},
+  {cap:'⑤ 数据中心：点击「获取数据」，一键拉取各平台真实数据',nav:'data',click:'#dataBtn',after:doFetch,hold:3000},
+  {cap:'播放 / 点赞 / 收藏 / 评论 / 分享 / 粉丝 自动分类汇总，明细可导出',hl:'#dtBody',hold:3200},
+  {cap:'一次创作，全网分发 —— VMatrix · 短视频多平台运营中枢',hold:3400}
+];
+
+async function run(){
+  moveTo(80,860);
+  await wait(700);
+  animateCards($('#v-dash'));
+  for(let i=0;i<STEPS.length;i++){
+    const s=STEPS[i];
+    setCap(s.cap,i+1,STEPS.length);
+    if(s.nav){await click('.nv[data-view="'+s.nav+'"]');setNav(s.nav);}
+    if(s.click){await click(s.click);}
+    if(s.clicks){for(const c of s.clicks){
+      await click(c);
+      const ck=$(c).querySelector('.ck');if(ck)ck.classList.add('on');
+    }}
+    if(s.type){if(!s.click)await click(s.type[0]);await type(s.type[0],s.type[1]);}
+    if(s.after)await s.after();
+    if(s.hl)hl(s.hl);
+    await wait(s.hold||2400);
+    unhl();
+  }
+  await wait(400);
+  window.__demoDone=true;
+}
+window.addEventListener('load',()=>{setTimeout(run,300);});
+</script>
+</body>
+</html>
